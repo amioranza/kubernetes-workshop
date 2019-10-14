@@ -1,0 +1,9 @@
+.vagrant
+kube_config_cluster.yml
+*.log
+*.rkestate
+
+# temporario
+multi_layer
+single_layer
+cluster.yml
