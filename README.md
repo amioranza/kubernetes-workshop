@@ -1,5 +1,3 @@
-# kubernetes-workshop
-
 # Kubernetes Workshop
 
 Instruções para rodar o laboratório do workshop
