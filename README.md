@@ -32,7 +32,7 @@ vagrant plugin install vagrant-disksize
 
 !!! IMPORTANTE !!!
 
-Este lab não dfoi testatdo com o WSL/2, portanto não tente executá-lo através deste recurso.
+Este lab não foi testatdo com o WSL(1/2), portanto não tente executá-lo através deste recurso.
 
 1. Clique em Iniciar e pesquise por bash, encontre o Git Bash e execute ele
 1. Clone este repositório (`git clone https://github.com/amioranza/kubernetes-workshop.git`)
