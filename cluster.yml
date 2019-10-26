@@ -1,0 +1,27 @@
+nodes:
+- address: "192.168.157.10"
+  port: "22"
+  internal_address: "192.168.197.10"
+  role: [controlplane,etcd,worker]
+  user: "vagrant"
+  ssh_key_path: ".vagrant/machines/kube-workshop/virtualbox/private_key"
+  labels: {}
+# - address: "192.168.157.11"
+#   port: "22"
+#   internal_address: "192.168.197.11"
+#   role: [worker]
+#   user: "vagrant"
+#   ssh_key_path: ".vagrant/machines/kube-worker1/virtualbox/private_key"
+#   labels: {}
+# - address: "192.168.157.12"
+#   port: "22"
+#   internal_address: "192.168.197.12"
+#   role: [worker]
+#   user: "vagrant"
+#   ssh_key_path: ".vagrant/machines/kube-worker2/virtualbox/private_key"
+#   labels: {}
+network:
+  plugin: "canal"
+  options:
+    canal_iface: "enp0s9"
+
