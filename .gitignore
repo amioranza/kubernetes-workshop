@@ -2,6 +2,3 @@
 kube_config_cluster.yml
 *.log
 *.rkestate
-
-# temporario
-multi_layer
