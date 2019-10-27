@@ -1,0 +1,195 @@
+#### 
+ - Criar diretório para baixar exemplos de configmaps
+
+mkdir -p configure-pod-container/configmap/
+
+ - Baixar os configmaps de exemplos
+wget https://kubernetes.io/examples/configmap/game.properties -O configure-pod-container/configmap/game.properties
+wget https://kubernetes.io/examples/configmap/ui.properties -O configure-pod-container/configmap/ui.properties
+
+ - Criar os configmaps
+kubectl create configmap game-config --from-file=configure-pod-container/configmap/
+
+ - Verificar configmap criado
+kubectl describe configmaps game-config
+kubectl get configmaps game-config -o yaml
+
+##############################################
+Criar configmap usando ucomente um arquivo como entrada
+
+kubectl create configmap game-config-2 --from-file=configure-pod-container/configmap/game.properties
+kubectl describe configmaps game-config-2
+
+#############################################
+Criar config a partir de um arquivo de variáveis de ambiente
+
+wget https://kubernetes.io/examples/configmap/game-env-file.properties -O configure-pod-container/configmap/game-env-file.properties
+
+cat configure-pod-container/configmap/game-env-file.properties
+
+
+kubectl create configmap game-config-env-file \
+       --from-env-file=configure-pod-container/configmap/game-env-file.properties
+
+kubectl get configmap game-config-env-file -o yaml
+
+#############################################
+Criar um configmap a partir de um arquivo especificando o nome da chave que será criada
+
+kubectl create configmap game-config-3 --from-file=game-special-key=configure-pod-container/configmap/game.properties
+
+kubectl get configmaps game-config-3 -o yaml
+
+#############################################
+Criand um configmap a partir de literais
+
+kubectl create configmap special-config --from-literal=special.how=very --from-literal=special.type=charm
+
+kubectl get configmaps special-config -o yaml
+
+############################################
+Aplicando um configmap de literias em um pod
+
+kubectl create configmap special-config --from-literal=special.how=very
+
+kubectl create -f https://kubernetes.io/examples/pods/pod-single-configmap-env-variable.yaml
+
+kubectl create -f https://kubernetes.io/examples/configmap/configmaps.yaml
+
+kubectl create -f https://kubernetes.io/examples/pods/pod-multiple-configmap-env-variable.yaml
+
+###########################################
+Aplicando um configmap através de variáveis de ambiente
+
+kubectl create -f https://kubernetes.io/examples/configmap/configmap-multikeys.yaml
+
+kubectl create -f https://kubernetes.io/examples/pods/pod-configmap-envFrom.yaml
+
+##########################################
+Aplicando um configmap como um volume mapeado
+
+kubectl create -f https://kubernetes.io/examples/configmap/configmap-multikeys.yaml
+
+kubectl create -f https://kubernetes.io/examples/pods/pod-configmap-volume.yaml
+
+#########################################
+Secrets
+
+Para usar secrets literais no Kubernetes deve-se primeiramente converter os dados para base64
+
+echo -n 'my-app' | base64
+echo -n '39528$vdg7Jb' | base64
+
+A partir dos dados gerdos cria-se um configmap:
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-secret
+data:
+  username: bXktYXBw
+  password: Mzk1MjgkdmRnN0pi
+----
+
+kubectl apply -f secret.yml
+
+kubectl get secret test-secret
+
+kubectl describe secret test-secret
+
+#############
+
+Criando um secret diretamente via linha de comando:
+
+kubectl create secret generic test-secret --from-literal=username='my-app' --from-literal=password='39528$vdg7Jb'
+
+###############
+
+Criando um pod que acessa um secret como um volume montado:
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-test-pod
+spec:
+  containers:
+    - name: test-container
+      image: nginx
+      volumeMounts:
+        # name must match the volume name below
+        - name: secret-volume
+          mountPath: /etc/secret-volume
+  # The secret data is exposed to Containers in the Pod through a Volume.
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: test-secret
+---
+
+kubectl apply -f pod_secret.yml
+
+kubectl get pod secret-test-pod
+
+kubectl exec -it secret-test-pod -- /bin/bash
+
+cd /etc/secret-volume
+ls
+cat username; echo; cat password; echo
+
+################
+Definindo variáveis de ambiente de um container a partir de um secret
+
+kubectl create secret generic backend-user --from-literal=backend-username='backend-admin'
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-single-secret
+spec:
+  containers:
+  - name: envars-test-container
+    image: nginx
+    env:
+    - name: SECRET_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: backend-user
+          key: backend-username
+---
+
+kubectl apply -f pod_env_secret.yml
+
+##########
+Definindo variáveis de ambiente de um pod a partir de vários secrets:
+
+kubectl create secret generic backend-user --from-literal=backend-username='backend-admin' 
+
+kubectl create secret generic db-user --from-literal=db-username='db-admin'
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: envvars-multiple-secrets
+spec:
+  containers:
+  - name: envars-test-container
+    image: nginx
+    env:
+    - name: BACKEND_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: backend-user
+          key: backend-username
+    - name: DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: db-user
+          key: db-username
+---
+
+kubectl apply -f pod_multi_env_secret.yml
+
