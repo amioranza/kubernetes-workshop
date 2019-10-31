@@ -1,0 +1,57 @@
+Comando para monitorar a criaçao de objetos no cluster
+
+watch -n 0.5 "kubectl config current-context; echo ''; kubectl config view | grep namespace; echo ''; kubectl get namespace,node,ingress,pod,svc,job,cronjob,deployment,rs,pv,pvc,secret,ep -o wide"
+
+==============================================
+
+Desafio 01
+
+Pod Creation
+
+Create a pod of image bash which runs once to execute the command hostname > /tmp/hostname && sleep 30.
+
+Edit its yaml to add a label my-label: test.
+
+Run the pod from the yaml file.
+
+Connect via ssh to the pod. Make sure its hostname is written into file /tmp/hostname.
+
+Delete the pod.
+
+============================================================
+
+Desafio 02
+
+Namespaces, Deployments and Services
+
+Create a new namespace k8s-challenge-2-a and assure all following operations (unless different namespace is mentioned) are done in this namespace.
+
+Create a deployment named nginx-deployment of three pods running image nginx with a memory limit of 64MB.
+
+Expose this deployment under the name nginx-service inside our cluster on port 4444, so point the service port 4444 to pod ports 80.
+
+Spin up a temporary pod named pod1 of image cosmintitei/bash-curl, ssh into it and request the default nginx page on port 4444 of our nginx-service using curl.
+
+Spin up a temporary pod named pod2 of image cosmintitei/bash-curl in namespace k8s-challenge-2-b, ssh into it and request the default nginx page on port 4444 of our nginx-service in namespace k8s-challenge-2-a using curl.
+
+=========================================================
+
+Desafio 03
+
+Deployment, Rollouts and Rollbacks
+
+Create a deployment of 5 pods with image nginx:1.14.2 in namespace one.
+
+Confirm that all pods are running that image.
+
+Edit the deployment to change the image of all pods to nginx:1.15.10.
+
+Confirm that all pods are running image nginx:1.15.10.
+
+Edit the deployment to change image of all pods to nginx:1.15.666.
+
+Confirm that all pod are running image nginx:1.15.666 and have no errors. Show error if there is one.
+
+Woops! Something went crazy wrong here! Rollback the change, so all pods should run nginx:1.15.10 again.
+
+Confirm that all pods are running image nginx:1.15.10.
