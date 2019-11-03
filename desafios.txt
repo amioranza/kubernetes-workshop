@@ -41,17 +41,10 @@ Desafio 03
 Deployment, Rollouts and Rollbacks
 
 Create a deployment of 5 pods with image nginx:1.14.2 in namespace one.
-
 Confirm that all pods are running that image.
-
 Edit the deployment to change the image of all pods to nginx:1.15.10.
-
 Confirm that all pods are running image nginx:1.15.10.
-
 Edit the deployment to change image of all pods to nginx:1.15.666.
-
 Confirm that all pod are running image nginx:1.15.666 and have no errors. Show error if there is one.
-
 Woops! Something went crazy wrong here! Rollback the change, so all pods should run nginx:1.15.10 again.
-
 Confirm that all pods are running image nginx:1.15.10.

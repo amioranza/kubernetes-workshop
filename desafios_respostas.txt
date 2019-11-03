@@ -1,0 +1,157 @@
+Comando para monitorar a criaçao de objetos no cluster
+
+watch -n 0.5 "kubectl config current-context; echo ''; kubectl config view | grep namespace; echo ''; kubectl get namespace,node,ingress,pod,svc,job,cronjob,deployment,rs,pv,pvc,secret,ep -o wide"
+
+==============================================
+
+Desafio 01
+
+Pod Creation
+
+Create a pod of image bash which runs once to execute the command hostname > /tmp/hostname && sleep 30.
+
+kubectl run pod1 --restart=Never --image=bash -- bash -c "hostname >> /tmp/hostname && sleep 30"
+
+Edit its yaml to add a label my-label: test.
+
+kubectl get pod pod1 -o yaml --export > pod1.yaml
+kubectl delete pod pod1
+
+Editar o arquivo pod1.yaml:
+apiVersion: v1
+kind: Pod 
+metadata:
+  labels:
+    run: pod1
+    my-label: test
+  name: pod1
+spec:
+  containers:
+  - args:
+    - bash
+    - -c
+    - hostname >> /tmp/hostname && sleep 30
+    image: bash
+    name: pod1
+  restartPolicy: Never
+
+Run the pod from the yaml file.
+
+kubectl create -f pod1.yaml
+kubectl get pod -l my-label
+
+Connect via ssh to the pod. Make sure its hostname is written into file /tmp/hostname.
+
+kubectl exec -it pod1 bash
+
+Delete the pod.
+
+kubectl delete pod pod1
+
+============================================================
+
+Desafio 02
+
+Namespaces, Deployments and Services
+
+Create a new namespace k8s-challenge-2-a and assure all following operations (unless different namespace is mentioned) are done in this namespace.
+
+kubectl create namespace k8n-challenge-2-a
+kubectl config current-context
+kubectl config set-context --current --namespace=k8n-challenge-2-a
+
+Create a deployment named nginx-deployment of three pods running image nginx with a memory limit of 64MB.
+
+kubectl run nginx-deployment --image=nginx --replicas 3 -o yaml --dry-run > nginx-deployment.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deployment
+  template:
+    metadata:
+      labels:
+        app: nginx-deployment
+    spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "64Mi"
+      restartPolicy: Always
+
+kubectl create -f nginx-deployment.yaml
+
+Expose this deployment under the name nginx-service inside our cluster on port 4444, so point the service port 4444 to pod ports 80.
+
+kubectl expose deployment nginx-deployment --name=nginx-service --port=4444 --target-port=80
+
+Spin up a temporary pod named pod1 of image cosmintitei/bash-curl, ssh into it and request the default nginx page on port 4444 of our nginx-service using curl.
+
+kubectl run -it pod2 --image=cosmintitei/bash-curl --restart=Never --rm curl nginx-service:4444
+
+Spin up a temporary pod named pod2 of image cosmintitei/bash-curl in namespace k8s-challenge-2-b, ssh into it and request the default nginx page on port 4444 of our nginx-service in namespace k8s-challenge-2-a using curl.
+
+kubectl create namespace k8n-challenge-2-b
+
+kubectl run -it pod2 --image=cosmintitei/bash-curl --restart=Never --namespace=k8n-challenge-2-b --rm curl nginx-service:4444
+
+kubectl run -it pod2 --image=cosmintitei/bash-curl --restart=Never --namespace=k8s-challenge-2-b --rm curl nginx-service.k8s-challenge-2-a:4444
+
+=========================================================
+
+Desafio 03
+
+Deployment, Rollouts and Rollbacks
+
+Create a deployment of 5 pods with image nginx:1.14.2 in namespace one.
+
+kubectl create namespace one
+kubectl config set-context $(kubectl config current-context) --namespace=one
+kubectl create deployment nginx1 --image=nginx:1.14.2 --replicas=5
+
+Confirm that all pods are running that image.
+
+kubectl get pods -o yaml | grep 1.14.2
+kubectl get pods -o yaml | grep 1.14.2 | wc -l
+
+Edit the deployment to change the image of all pods to nginx:1.15.10.
+
+kubectl edit deployments nginx1
+# then manually edit the container image to nginx:1.15.10
+# OR
+kubectl set image deployment/nginx1 nginx=nginx:1.15.10
+
+Confirm that all pods are running image nginx:1.15.10.
+
+kubectl get pods -o yaml | grep 1.15.10 | wc -l
+
+Edit the deployment to change image of all pods to nginx:1.15.666.
+
+kubectl edit deployments nginx1
+# then manually edit the container image to nginx:1.15.666
+# OR
+kubectl set image deployment/nginx1 nginx=nginx:1.15.666
+
+Confirm that all pod are running image nginx:1.15.666 and have no errors. Show error if there is one.
+
+kubectl get pods -o yaml | grep 1.15.666 | wc -l
+
+Woops! Something went crazy wrong here! Rollback the change, so all pods should run nginx:1.15.10 again.
+
+# show history
+kubectl rollout history deployment nginx1
+kubectl rollout undo deployment nginx1
+
+Confirm that all pods are running image nginx:1.15.10.
+
+kubectl get pods -o yaml | grep 1.15.10 | wc -l
