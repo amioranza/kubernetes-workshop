@@ -2,4 +2,4 @@
 kube_config_cluster.yml
 *.log
 *.rkestate
-
+.idea
